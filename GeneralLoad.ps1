@@ -86,6 +86,18 @@ $CompileCmd = New-Object System.Data.SqlClient.SqlCommand
 $CompileCmd.CommandText = "EXEC dbo.CustomerList @CustomerID = 30118;"
 $CompileCmd.Connection = $SqlConnection
 
+# columnstore
+$ColumnStoreCmd = New-Object System.Data.SqlClient.SqlCommand
+$ColumnStoreCmd.CommandText = "SELECT bp.NAME AS ProductName,
+COUNT(bth.ProductID),
+SUM(bth.Quantity),
+AVG(bth.ActualCost)
+FROM dbo.bigProduct AS bp
+JOIN dbo.bigTransactionHistory AS bth
+ ON bth.ProductID = bp.ProductID
+GROUP BY bp.NAME;"
+$ColumnStoreCmd.Connection = $SqlConnection
+
 while(1 -ne 0)
 {
 
@@ -148,6 +160,10 @@ foreach($row in $ProdDataSet.Tables[0])
     $CompileCmd.ExecuteNonQuery() | Out-Null
     $SqlConnection.Close()
 
+    $SqlConnection.Open()
+    $ColumnStoreCmd.ExecuteNonQuery() | Out-Null
+    $SqlConnection.Close()
+    
 }
 
 }

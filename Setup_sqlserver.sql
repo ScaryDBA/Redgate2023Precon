@@ -1,11 +1,20 @@
+DROP DATABASE IF EXISTS AdventureWorks;
+
+
 --restore AWS RDS database
 EXEC msdb.dbo.rds_restore_database @restore_db_name = 'AdventureWorks',
                                    @s3_arn_to_restore_from = 'arn:aws:s3:::summitprecon/AdventureWorks2019.bak';
 
 
+--EXEC msdb.dbo.rds_restore_database @restore_db_name = 'AdventureWorksJSON',
+--                                   @s3_arn_to_restore_from = 'arn:aws:s3:::summitprecon/AdventureWorksDW2016_EXT.bak';
+
+EXEC msdb.dbo.rds_restore_database @restore_db_name = 'AdventureWorksJSON',
+                                   @s3_arn_to_restore_from = 'arn:aws:s3:::summitprecon/AdventureWorks2016_EXT.bak';
+
 
 USE AdventureWorks;
-
+Go
 
 --procedure for parameter sniffing
 CREATE OR ALTER PROC dbo.ProductTransactionHistoryByReference
@@ -44,12 +53,12 @@ FROM Person.Address AS a
     JOIN Person.StateProvince AS sp
         ON a.StateProvinceID = sp.StateProvinceID
 WHERE a.City = @City;
-
+go
 
 
 
 ALTER DATABASE SCOPED CONFIGURATION SET LAST_QUERY_PLAN_STATS = ON;
-
+go
 
 
 CREATE OR ALTER PROCEDURE dbo.CustomerList @CustomerID INT
@@ -63,3 +72,18 @@ FROM Sales.SalesOrderHeader AS soh
         ON soh.SalesOrderID = sod.SalesOrderID
 WHERE soh.CustomerID >= @CustomerID
 OPTION (OPTIMIZE FOR (@CustomerID = 1));
+GO
+
+
+DROP TABLE IF EXISTS dbo.BlockTest;
+GO
+CREATE TABLE dbo.BlockTest
+(
+    C1 INT,
+    C2 INT,
+    C3 DATETIME
+);
+INSERT INTO dbo.BlockTest
+VALUES
+(11, 12, GETDATE()),
+(21, 22, GETDATE());

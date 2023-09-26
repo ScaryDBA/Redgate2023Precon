@@ -16,6 +16,22 @@ EXEC dbo.CustomerList @CustomerID = 30118 WITH RECOMPILE;
 
 
 
+CREATE OR ALTER PROCEDURE dbo.CustomerList @CustomerID INT
+AS
+SELECT soh.SalesOrderNumber,
+       soh.OrderDate,
+       sod.OrderQty,
+       sod.LineTotal
+FROM Sales.SalesOrderHeader AS soh
+    JOIN Sales.SalesOrderDetail AS sod
+        ON soh.SalesOrderID = sod.SalesOrderID
+WHERE soh.CustomerID >= @CustomerID;
+--OPTION (OPTIMIZE FOR (@CustomerID = 1));
+
+
+
+
+
 --parameter sniffing
 SELECT COUNT(*) refcount,
        th.ReferenceOrderID
@@ -45,3 +61,67 @@ EXEC dbo.ProductTransactionHistoryByReference
 
 EXEC dbo.ProductTransactionHistoryByReference
     @ReferenceOrderID = 48603;
+
+
+--columnstore
+SELECT bp.NAME AS ProductName,
+       COUNT(bth.ProductID),
+       SUM(bth.Quantity),
+       AVG(bth.ActualCost)
+FROM dbo.bigProduct AS bp
+    JOIN dbo.bigTransactionHistory AS bth
+        ON bth.ProductID = bp.ProductID
+GROUP BY bp.NAME;
+
+
+
+
+
+CREATE NONCLUSTERED COLUMNSTORE INDEX ix_csTest
+ON dbo.bigTransactionHistory (
+                                 ProductID,
+                                 Quantity,
+                                 ActualCost
+                             );
+
+
+
+
+DROP INDEX dbo.bigTransactionHistory.ix_csTest;
+
+
+GO
+--JSON
+USE AdventureWorksJSON
+GO
+EXEC Sales.SalesOrderSearchByCustomer_json 'Joe Rana'
+EXEC Person.PersonSearchByEmail_json 'ken0@adventure-works.com'
+EXEC Sales.SalesOrderSearchByReason_json 'Price'
+
+
+CREATE INDEX idx_SalesOrder_json_CustomerName
+	ON Sales.SalesOrder_json(vCustomerName)
+go
+
+
+
+
+
+
+
+-- Blocking
+--First connection, executed first
+BEGIN TRAN User1;
+UPDATE dbo.BlockTest
+SET C3 = GETDATE();
+--rollback transaction
+
+--Second connection, executed second
+BEGIN TRAN User2;
+SELECT C2
+FROM dbo.BlockTest
+WHERE C1 = 11;
+COMMIT;
+
+
+EXEC sp_who2
