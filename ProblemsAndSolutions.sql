@@ -4,6 +4,9 @@ ON Person.ADDRESS (StateProvinceID ASC)
 INCLUDE (PostalCode)
 WITH (DROP_EXISTING = ON);
 
+EXEC dbo.AddressByCity @City = N'New York' -- nvarchar(30)
+
+
 
 /*CREATE NONCLUSTERED INDEX IX_Address_StateProvinceID
 ON Person.ADDRESS (StateProvinceID ASC)
@@ -13,6 +16,7 @@ WITH (DROP_EXISTING = ON);*/
 --recompiles
 EXEC dbo.CustomerList @CustomerID = 7920 WITH RECOMPILE;
 EXEC dbo.CustomerList @CustomerID = 30118 WITH RECOMPILE;
+GO 100
 
 
 
@@ -125,3 +129,16 @@ COMMIT;
 
 
 EXEC sp_who2
+
+
+
+
+BEGIN TRAN
+UPDATE Person.Address
+SET AddressLine2 = '1313 Mockingbird Lane'
+WHERE AddressID = 42;
+
+UPDATE Person.AddressType
+SET Name = 'Seattle'
+WHERE AddressTypeID = 1;
+ROLLBACK TRAN

@@ -18,7 +18,10 @@ SELECT @plan_handle = deps.plan_handle
 FROM sys.dm_exec_procedure_stats AS deps
 WHERE deps.object_id = OBJECT_ID('dbo.AddressByCity');
 
-DBCC FREEPROCCACHE(@plan_handle);"
+IF @plan_handle IS NOT NULL
+BEGIN
+DBCC FREEPROCCACHE(@plan_handle);
+END"
 $Freecmd.Connection = $SqlConnection
 
 

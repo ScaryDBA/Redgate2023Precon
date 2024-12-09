@@ -80,7 +80,7 @@ foreach($row in $RefData.Tables[0])
         #    $SniffFreecmd.ExecuteNonQuery() | Out-Null
         #    $SqlConnection.Close()
         #}
-        if($timer.Elapsed.Minutes > 7)
+        if($timer.Elapsed.Minutes > 17)
         {
             $SqlConnection.Open()
             $SniffFreecmd.ExecuteNonQuery() | Out-Null
